@@ -1,150 +1,117 @@
-# Apache Airflow Contribution Summary
+# Aaron Chen · Apache Airflow Contributor
 
-## About
+I'm a Python engineer contributing to [Apache Airflow](https://github.com/apache/airflow), the
+open-source workflow orchestrator. My work covers the **scheduler**, the **Kubernetes / Helm**
+deployment stack, **AWS, Azure, and GCP integrations**, and **developer tooling** for Airflow's
+maintainers.
 
-This repository summarizes my open-source contributions to the
-[Apache Airflow](https://github.com/apache/airflow) project.
+| Merged PRs | PRs Reviewed | Recognition | Active Since |
+|:---:|:---:|:---:|:---:|
+| **96** | **77** | PR of the Month | Jan 2025 |
 
-My work started with documentation and provider cleanup, then expanded into core
-runtime reliability, deferrable operators, provider features, CI/release
-automation, SQLAlchemy 2 migration work, and developer tooling for Airflow
-maintainers and contributors.
-
-The contributions listed here focus on practical improvements for the Airflow
-community: fewer production-facing bugs, better release and security automation,
-more complete provider integrations, faster contributor workflows, and clearer
-documentation for users.
+<sub>Stats as of October 2026.</sub>
 
 ---
 
-## Overview
+## Featured Work
 
-- **Contributor:** [Aaron Chen (nailo2c)](https://github.com/nailo2c)
-- **Project:** [Apache Airflow](https://github.com/apache/airflow)
-- **Contribution Scope:** 60+ merged PRs, issue triage, release validation, and
-  ongoing feature proposals
-- **Main Areas:** Core reliability, deferrable execution, provider integrations,
-  CI/release automation, developer experience, observability, documentation, and
-  tests
-- **Tech Stack:** Python, SQLAlchemy 2, pytest, Kubernetes, Azure, Google Cloud,
-  Slack APIs, StatsD, Breeze, GitHub Actions, REST APIs
+### Scheduler: run a DAG when the schedule is due *and* its data is ready ([#58543](https://github.com/apache/airflow/pull/58543))
 
----
+Added the `AssetAndTimeSchedule` timetable. A DAG runs only when its time schedule is due
+**and** its upstream data assets are ready. Before this, users could trigger on time or on data,
+but not on both. The change is in the scheduler's DagRun-creation path. Asset readiness is checked
+again under row locks, so the timetable stays correct when several HA schedulers run at once. It
+added about 1.3k lines across 24 files and closes feature request
+[#58056](https://github.com/apache/airflow/issues/58056).
 
-## Contribution Themes
+### Kubernetes: native sidecars for Kerberos workers ([#71221](https://github.com/apache/airflow/pull/71221), [#72555](https://github.com/apache/airflow/pull/72555))
 
-| Theme | Impact |
-|------|--------|
-| Core and runtime reliability | Fixed production-facing failures in deferred HTTP execution, Git DAG bundles, task parsing, logging, Celery log formatting, and Google Dataflow retry behavior. |
-| Provider ecosystem | Added and modernized integrations across Azure, Google, MongoDB, Druid, Slack, Papermill, Kubernetes, Spark, and HTTP providers. |
-| CI, release, and security automation | Improved SBOM generation, canary release checks, CI reproduction commands, GitHub token handling, Go SDK test stability, and build constraint workflows. |
-| Developer experience | Improved Breeze Kubernetes development by syncing local changes directly into pods, reducing the feedback loop for provider and Kubernetes-related development. |
-| Documentation and testing | Repaired outdated documentation links, refreshed contribution and testing docs, added executable provider examples, and improved test coverage for core serialization. |
+This work targets a Helm chart request open since 2023
+([#35154](https://github.com/apache/airflow/issues/35154)). Kerberos sidecars kept task pods
+`Running` for 20+ minutes after the task finished, and someone had to delete them by hand. I added
+a `klist` startup probe, which is merged and backported to the 1.2x chart line. A second PR, now in
+review, moves the sidecars to Kubernetes native sidecars. Pods then shut down cleanly when the task
+ends, and tasks start only after Kerberos credentials are ready.
 
----
+### Event-driven pipelines on AWS Kinesis and Azure Service Bus ([#71135](https://github.com/apache/airflow/pull/71135), [#73509](https://github.com/apache/airflow/pull/73509), [#61924](https://github.com/apache/airflow/pull/61924))
 
-## Highlighted Pull Requests
+This is part of AIP-82, which lets external events trigger DAGs. I built an async Kinesis Data
+Streams trigger that reads records without taking up a worker slot. It handles every shard,
+resharding, throttling, and iterator expiry, and it checkpoints its position in each shard. I then
+connected Kinesis and Azure Service Bus to Airflow's common message-queue interface. Both were
+tested end to end: a record sent to a live AWS stream started a DAG run.
 
-These PRs are selected for their user, maintainer, release, or ecosystem impact.
+### Spark on YARN: freeing worker memory at scale ([#65991](https://github.com/apache/airflow/pull/65991))
 
-| Area | PR | Impact | Type | Status |
-|------|----|--------|------|--------|
-| Developer Experience / Kubernetes | [#59747](https://github.com/apache/airflow/pull/59747) | Added `breeze k8s dev`, allowing local Airflow changes to sync directly into Kubernetes pods during Breeze development. This PR was recognized as PR of the Month. | Feature | Merged |
-| CI / Security / Release | [#63310](https://github.com/apache/airflow/pull/63310) | Added SBOM generation to canary runs so ASF can capture up-to-date software bill of materials for release and security workflows. | CI | Merged |
-| CI / Reproducibility | [#63901](https://github.com/apache/airflow/pull/63901) | Improved Airflow CI output by printing usable reproduction commands, reducing the effort needed to debug failed checks locally. | CI | Merged |
-| Provider Architecture | [#64134](https://github.com/apache/airflow/pull/64134) | Replaced heavyweight `airflow.configuration` usage with `airflow.providers.common.compat.sdk`, making provider loading lighter. | Feature | Merged |
-| Event-Driven Airflow / Azure | [#61924](https://github.com/apache/airflow/pull/61924) | Added Azure Service Bus support to Airflow's common message queue layer for event-driven workflows. | Feature | Merged |
-| Azure Provider Modernization | [#61188](https://github.com/apache/airflow/pull/61188) | Migrated Azure Data Lake Storage code from Gen 1 SDK to Gen 2 SDK, improving provider maintainability and alignment with current Azure APIs. | Refactor | Merged |
-| Azure Provider | [#62391](https://github.com/apache/airflow/pull/62391) | Implemented start, stop, and restart operators for Azure Virtual Machines. | Feature | Merged |
-| Core / DAG Bundles | [#60734](https://github.com/apache/airflow/pull/60734) | Fixed `GitDagBundle` behavior when `supports_versioning=True`, improving reliability for versioned DAG bundle usage. | Bugfix | Merged |
-| Observability | [#52815](https://github.com/apache/airflow/pull/52815) | Added a StatsD metric for counting running DAGs, improving operational visibility. | Feature | Merged |
-| Auth / Provider Support | [#53554](https://github.com/apache/airflow/pull/53554) | Added OAuth2 support, expanding authentication options for provider integrations. | Feature | Merged |
-| Deferrable Operators | [#52050](https://github.com/apache/airflow/pull/52050) | Fixed a deferred `HttpOperator` serialization bug that occurred when connections had login/password fields. | Bugfix | Merged |
-| Google Provider Reliability | [#66293](https://github.com/apache/airflow/pull/66293) | Fixed Google Dataflow behavior so transient 503 responses can retry as expected. | Bugfix | Merged |
+This closes an issue open since 2022 ([#24171](https://github.com/apache/airflow/issues/24171)).
+For every running Spark job, Airflow kept a `spark-submit` JVM alive only to poll the job's status.
+I added an opt-in mode that shuts down that JVM after submission and tracks the job through the
+YARN ResourceManager REST API instead. This frees worker memory when many Spark jobs run at once.
 
----
+### Fixed an SSO login regression in a release candidate ([#71920](https://github.com/apache/airflow/pull/71920))
 
-## Additional Merged Contributions
+In the `apache-airflow-providers-fab` 3.8.1rc1 release candidate, Azure AD login failed for tenants
+configured with a domain name or an uppercase GUID. The cause was token validation comparing the
+issuer claim against the raw configured value. I fixed it to use the canonical tenant ID from the
+tenant's OpenID metadata.
 
-### Core, Runtime, and Deferrable Execution
+### Developer experience: `breeze k8s dev` ([#59747](https://github.com/apache/airflow/pull/59747)) · *PR of the Month*
 
-- [#50744](https://github.com/apache/airflow/pull/50744): Fixed Jinja rendering when DAGs use `render_template_as_native_obj=True`.
-- [#51510](https://github.com/apache/airflow/pull/51510): Added `--batch-size` to `airflow db clean` for better cleanup control.
-- [#52585](https://github.com/apache/airflow/pull/52585): Helped address an `HttpSensorTrigger` recovery issue in deferrable mode.
-- [#52897](https://github.com/apache/airflow/pull/52897): Fixed `GitDagBundle` behavior that did not match expectations.
-- [#57782](https://github.com/apache/airflow/pull/57782): Fixed parsing failures for `@task.kubernetes` caused by indentation handling.
-- [#58115](https://github.com/apache/airflow/pull/58115): Fixed an indentation issue in generated Airflow config examples.
-- [#58841](https://github.com/apache/airflow/pull/58841): Fixed Kubernetes deferred execution when `k8s_conn_id` is configured through environment variables.
-- [#59347](https://github.com/apache/airflow/pull/59347): Fixed XCom directory creation failures for non-root Kubernetes images.
-- [#61013](https://github.com/apache/airflow/pull/61013): Fixed Azure Blob Storage log handling for `wasb://` remote log folders.
-- [#61701](https://github.com/apache/airflow/pull/61701): Fixed Celery log formatter behavior.
-
-### Provider Features and Integrations
-
-- [#50518](https://github.com/apache/airflow/pull/50518): Added `create_collection()` support to `MongoHook`.
-- [#51265](https://github.com/apache/airflow/pull/51265): Improved Slack API reliability under concurrent rate-limit pressure.
-- [#52926](https://github.com/apache/airflow/pull/52926): Added SSL certificate verification support to `DruidDbApiHook`.
-- [#61048](https://github.com/apache/airflow/pull/61048): Refactored Azure operator return values from strings to lists of URIs.
-- [#65170](https://github.com/apache/airflow/pull/65170): Added `log_output` support so `PapermillOperator` can print notebook logs.
-
-### CI, Release, Security, and Tooling
-
-- [#51849](https://github.com/apache/airflow/pull/51849): Fixed SBOM documentation generation after it stopped updating for newer Airflow versions.
-- [#53720](https://github.com/apache/airflow/pull/53720): Fixed a variable bug in release tooling scripts.
-- [#62197](https://github.com/apache/airflow/pull/62197): Fixed stale system test links generated from `check_system_tests.py`.
-- [#63762](https://github.com/apache/airflow/pull/63762): Fixed `--github-token` handling logic.
-- [#64650](https://github.com/apache/airflow/pull/64650): Fixed a Go SDK test race condition that caused flaky CI behavior.
-- [#65514](https://github.com/apache/airflow/pull/65514): Fixed an unexpected CI failure that blocked another Airflow PR.
-- [#66640](https://github.com/apache/airflow/pull/66640): Added GitHub Copilot guidance to avoid raising `AirflowException`.
-
-### Documentation, Tests, and Migration Work
-
-- [#45822](https://github.com/apache/airflow/pull/45822): Added Appier to the Airflow user list.
-- [#46352](https://github.com/apache/airflow/pull/46352): Updated multiple provider docs with executable `SQLExecuteQueryOperator` examples and current guidance.
-- [#48815](https://github.com/apache/airflow/pull/48815): Fixed outdated `Building documentation` links.
-- [#50471](https://github.com/apache/airflow/pull/50471): Fixed outdated links in the contribution workflow documentation.
-- [#51035](https://github.com/apache/airflow/pull/51035): Refreshed outdated unit test documentation.
-- [#51419](https://github.com/apache/airflow/pull/51419): Improved `airflow-core::serialization::serializers` test coverage from 83% to 90%.
-- [#54062](https://github.com/apache/airflow/pull/54062): Fixed a small issue in the Airflow Go SDK README.
-- [#57268](https://github.com/apache/airflow/pull/57268), [#57586](https://github.com/apache/airflow/pull/57586): Contributed SQLAlchemy 2 migration type-fix work.
-- [#63163](https://github.com/apache/airflow/pull/63163), [#65071](https://github.com/apache/airflow/pull/65071): Fixed CI and system test documentation references.
+I added hot-reload to Airflow's Kubernetes development environment. Local DAG and core source
+changes now sync straight into running pods, so contributors no longer rebuild and redeploy images
+after every edit. This closes [#40005](https://github.com/apache/airflow/issues/40005).
 
 ---
 
-## Release and Community Work
+## More Highlights
 
-- Participated in Airflow and provider pre-release validation, including release
-  testing issues such as [#51750](https://github.com/apache/airflow/issues/51750),
+| Area | PR | What it does |
+|---|---|---|
+| Scheduler | [#67873](https://github.com/apache/airflow/pull/67873) | Fixed the `none_failed_min_one_success` trigger rule, which reported dependencies as met when no upstream task had succeeded |
+| Observability | [#52815](https://github.com/apache/airflow/pull/52815) | Added the `executor.running_dags` metric, closing an issue open since 2020 |
+| Data lineage | [#69234](https://github.com/apache/airflow/pull/69234) | Emitted one OpenLineage event per statement in a BigQuery script, so lineage shows which table feeds which instead of linking every input to every output |
+| Kubernetes | [#69613](https://github.com/apache/airflow/pull/69613) | Made the XCom sidecar's security context configurable, so `KubernetesPodOperator` works on clusters that enforce Pod Security Standards or OPA Gatekeeper |
+| Helm chart | [#69945](https://github.com/apache/airflow/pull/69945), [#70425](https://github.com/apache/airflow/pull/70425) | Added Kubernetes Gateway API `HTTPRoute` support for Flower and the Airflow 2 webserver |
+| Azure | [#71350](https://github.com/apache/airflow/pull/71350), [#62391](https://github.com/apache/airflow/pull/62391) | Added an Azure Analysis Services integration (hook, operator, sensor, and deferrable trigger, about 2.2k lines) and Azure VM start, stop, and restart operators |
+| GCP | [#66510](https://github.com/apache/airflow/pull/66510), [#67140](https://github.com/apache/airflow/pull/67140) | Added Cloud SQL IAM authentication (requested since 2023) and Cloud Run container logs in the Airflow task log (requested since 2024) |
+| TypeScript SDK | [#73357](https://github.com/apache/airflow/pull/73357) | Added Variable write and delete. Also fixed XCom writes to a stale run reporting success when they had failed |
+| CI / Release | [#63310](https://github.com/apache/airflow/pull/63310), [#63901](https://github.com/apache/airflow/pull/63901) | Added SBOM generation to canary builds, and printed a command for reproducing each failing CI step locally |
+| Dev tooling | [#73998](https://github.com/apache/airflow/pull/73998) *(open)* | Switched Kubernetes test clusters to a single node, which lowers CPU and memory use for local K8s development |
+
+---
+
+## Beyond Code
+
+- **Code review:** Reviewed 77 pull requests from other contributors.
+- **Release validation:** Tested Airflow and provider release candidates before release
+  ([#51750](https://github.com/apache/airflow/issues/51750),
   [#52746](https://github.com/apache/airflow/issues/52746),
-  [#52758](https://github.com/apache/airflow/issues/52758), and
-  [#59952](https://github.com/apache/airflow/issues/59952).
-- Investigated regressions and design questions before implementation, including
-  metrics behavior after Airflow 3.0, DAG bundle behavior, and task execution edge
-  cases.
-- Contributed documentation cleanups while working through related areas of the
-  codebase, keeping the contributor and user experience current.
+  [#59952](https://github.com/apache/airflow/issues/59952)).
+- **Codebase health:** Removed dead code
+  ([#72462](https://github.com/apache/airflow/pull/72462),
+  [#72918](https://github.com/apache/airflow/pull/72918),
+  [#72324](https://github.com/apache/airflow/pull/72324)) and raised test coverage for core
+  serialization from 83% to 90%.
+- **Localization:** Added Traditional Chinese (zh-TW) UI translations
+  ([#72766](https://github.com/apache/airflow/pull/72766)).
 
----
+## How I Work
 
-## Key Learnings
+- **I reproduce problems on real infrastructure first.** Most of my PRs include an end-to-end run
+  on the actual service, such as AWS Kinesis, Azure Analysis Services, BigQuery, GCS, or a live
+  Kubernetes cluster, with before-and-after evidence.
+- **I take on long-standing issues.** Several of my PRs close issues that had been open for two to
+  five years.
+- **I keep changes backward compatible.** New behavior is opt-in or keeps existing contracts. For
+  example, the YARN tracking mode is behind a flag, and the BigQuery task-level lineage event is
+  unchanged.
 
-- **Maintainer-oriented engineering:** Small changes can have large community
-  impact when they reduce CI noise, release risk, or local reproduction time.
-- **Provider reliability:** Airflow providers need careful compatibility work
-  across cloud APIs, auth models, deferrable execution, and backward-compatible
-  behavior.
-- **Testing and migration:** Large projects require incremental migration work,
-  targeted type fixes, and regression tests that protect shared abstractions.
-- **Open-source collaboration:** Effective PRs usually combine a clear problem
-  statement, narrow implementation scope, and responsiveness to maintainer review.
+## Tech Stack
 
----
+Python · SQLAlchemy · pytest · Kubernetes · Helm · AWS · Azure · GCP · Spark / YARN ·
+OpenLineage · Kerberos · TypeScript · Go · GitHub Actions
 
 ## Links
 
-- **GitHub Profile:** [github.com/nailo2c](https://github.com/nailo2c)
-- **Apache Airflow:** [github.com/apache/airflow](https://github.com/apache/airflow)
-- **Selected PRs:** [#59747](https://github.com/apache/airflow/pull/59747),
-  [#63310](https://github.com/apache/airflow/pull/63310),
-  [#64134](https://github.com/apache/airflow/pull/64134),
-  [#61924](https://github.com/apache/airflow/pull/61924)
+- **GitHub:** [github.com/aaron-y-chen](https://github.com/aaron-y-chen)
+- **All my Airflow PRs:** [apache/airflow pulls by aaron-y-chen](https://github.com/apache/airflow/pulls?q=is%3Apr+author%3Aaaron-y-chen)
