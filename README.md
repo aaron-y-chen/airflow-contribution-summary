@@ -2,14 +2,14 @@
 
 I'm a Python engineer contributing to [Apache Airflow](https://github.com/apache/airflow), the
 open-source workflow orchestrator. My work covers the **scheduler**, the **Kubernetes / Helm**
-deployment stack, **AWS, Azure, and GCP integrations**, and **developer tooling** for Airflow's
-maintainers.
+deployment stack, **AWS, Azure, and GCP integrations**, **Go and TypeScript task SDKs**, and
+**developer tooling** for Airflow's maintainers.
 
-| Merged PRs | PRs Reviewed | Recognition | Active Since |
-|:---:|:---:|:---:|:---:|
-| **96** | **77** | PR of the Month | Jan 2025 |
+| Merged PRs | Open PRs | PRs Reviewed | Recognition | Active Since |
+|:---:|:---:|:---:|:---:|:---:|
+| **[104](https://github.com/apache/airflow/pulls?q=is%3Apr+is%3Amerged+author%3Aaaron-y-chen)** | **[2](https://github.com/apache/airflow/pulls?q=is%3Apr+state%3Aopen+author%3Aaaron-y-chen)** | **[90](https://github.com/apache/airflow/pulls?q=is%3Apr+reviewed-by%3Aaaron-y-chen+-author%3Aaaron-y-chen)** | PR of the Month | Jan 2025 |
 
-<sub>Stats as of October 2026.</sub>
+<sub>Stats as of October 18, 2026. Review count excludes my own PRs.</sub>
 
 ---
 
@@ -68,6 +68,7 @@ after every edit. This closes [#40005](https://github.com/apache/airflow/issues/
 | Area | PR | What it does |
 |---|---|---|
 | Scheduler | [#67873](https://github.com/apache/airflow/pull/67873) | Fixed the `none_failed_min_one_success` trigger rule, which reported dependencies as met when no upstream task had succeeded |
+| Celery / PostgreSQL | [#74841](https://github.com/apache/airflow/pull/74841) | Fixed prepared-statement errors when Celery's psycopg3 result backend uses PgBouncer transaction pooling, while preserving explicit connection settings |
 | Observability | [#52815](https://github.com/apache/airflow/pull/52815) | Added the `executor.running_dags` metric, closing an issue open since 2020 |
 | Data lineage | [#69234](https://github.com/apache/airflow/pull/69234) | Emitted one OpenLineage event per statement in a BigQuery script, so lineage shows which table feeds which instead of linking every input to every output |
 | Kubernetes | [#69613](https://github.com/apache/airflow/pull/69613) | Made the XCom sidecar's security context configurable, so `KubernetesPodOperator` works on clusters that enforce Pod Security Standards or OPA Gatekeeper |
@@ -75,14 +76,15 @@ after every edit. This closes [#40005](https://github.com/apache/airflow/issues/
 | Azure | [#71350](https://github.com/apache/airflow/pull/71350), [#62391](https://github.com/apache/airflow/pull/62391) | Added an Azure Analysis Services integration (hook, operator, sensor, and deferrable trigger, about 2.2k lines) and Azure VM start, stop, and restart operators |
 | GCP | [#66510](https://github.com/apache/airflow/pull/66510), [#67140](https://github.com/apache/airflow/pull/67140) | Added Cloud SQL IAM authentication (requested since 2023) and Cloud Run container logs in the Airflow task log (requested since 2024) |
 | TypeScript SDK | [#73357](https://github.com/apache/airflow/pull/73357) | Added Variable write and delete. Also fixed XCom writes to a stale run reporting success when they had failed |
+| Go SDK | [#74674](https://github.com/apache/airflow/pull/74674) *(open)* | Exposes DAG run configuration and scheduling metadata to Go tasks, preserving integer precision and existing XCom types |
 | CI / Release | [#63310](https://github.com/apache/airflow/pull/63310), [#63901](https://github.com/apache/airflow/pull/63901) | Added SBOM generation to canary builds, and printed a command for reproducing each failing CI step locally |
-| Dev tooling | [#73998](https://github.com/apache/airflow/pull/73998) *(open)* | Switched Kubernetes test clusters to a single node, which lowers CPU and memory use for local K8s development |
+| Dev tooling | [#73998](https://github.com/apache/airflow/pull/73998) | Switched Kind test clusters to a single node; a local benchmark used 48% less disk and 22% less memory |
 
 ---
 
 ## Beyond Code
 
-- **Code review:** Reviewed 77 pull requests from other contributors.
+- **Code review:** Reviewed 90 pull requests from other contributors.
 - **Release validation:** Tested Airflow and provider release candidates before release
   ([#51750](https://github.com/apache/airflow/issues/51750),
   [#52746](https://github.com/apache/airflow/issues/52746),
